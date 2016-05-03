@@ -3,7 +3,7 @@
 # Usage: ./scripts/to_html.sh path/to/notebook.qvnotebook path/to/output
 
 CWD=$PWD
-cd "$2"
+mkdir -p "$2" && cd "$2"
 PROJECT=$PWD
 NAME=$(basename "$PROJECT")
 cd "$CWD" && cd "$1"
