@@ -10,7 +10,6 @@ $if(date-meta)$
   <meta name="dcterms.date" content="$date-meta$">
 $endif$
   <title>$if(title-prefix)$$title-prefix$ - $endif$$pagetitle$</title>
-  <style type="text/css">code{white-space: pre;}</style>
   <!--[if lt IE 9]>
     <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
   <![endif]-->
@@ -22,11 +21,6 @@ $if(highlighting-css)$
 $highlighting-css$
   </style>
 $endif$
-  <style>
-    .header-img {
-        float: right;
-    }
-  </style>
 $for(css)$
   <link rel="stylesheet" href="$css$">
 $endfor$
@@ -35,7 +29,37 @@ $if(math)$
 $endif$
 $for(header-includes)$
   $header-includes$
-$endfor$
+  $endfor$
+  <style type="text/css">
+    .header-img {
+        float: right;
+    }
+    code{
+        white-space: pre;
+    }
+    pre{
+        width: 65%;
+    }
+    .header-img {
+        float: right;
+    }
+    table {
+        padding: 20px;
+    }
+    table th {
+        border-top: 1px solid #ddd;
+    }
+    table tr {
+        padding: 8px;
+        vertical-align: top;
+    }
+    table td {
+        border: 1px solid #ddd;
+    }
+    .even {
+        background-color: #EEE;
+    }
+    </style>
 </head>
 <body>
 

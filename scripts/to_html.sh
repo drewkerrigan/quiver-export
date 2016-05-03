@@ -3,6 +3,7 @@
 # Usage: ./scripts/to_html.sh path/to/notebook.qvnotebook path/to/output
 
 CWD=$PWD
+rm -rf "$2"
 mkdir -p "$2" && cd "$2"
 PROJECT=$PWD
 NAME=$(basename "$PROJECT")
@@ -11,6 +12,9 @@ NOTEBOOK=$PWD
 cd "$CWD" && cd $(dirname $0)/../
 ROOT=$PWD
 DOCROOT=$PWD/doc
+
 $($ROOT/quiver-export.py -N "$NOTEBOOK" -o "$PROJECT")
 cd "$PROJECT"
-$(pandoc -s -S --toc -c "$DOCROOT/css/bootstrap.css" *.md -o "$NAME.html" --template "$DOCROOT/pandoc-template.html5" --toc-depth=5 --self-contained)
+cp -R $DOCROOT/* ./
+
+$(pandoc -s -S --toc -c "css/bootstrap.css" *.md -o "$NAME.html" --template "pandoc-template.html5" --toc-depth=5 --self-contained)
