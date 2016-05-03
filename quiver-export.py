@@ -7,8 +7,9 @@ Provides manipulation of Quiver.qvlibrary based Notebooks.
 
 import json
 import argparse
+from shutil import copy
 from getpass import getuser
-from os import listdir
+from os import listdir, makedirs
 from os.path import isfile, join
 
 DEFAULT_LIBRARY = '/Users/' + getuser() + '/Library/Containers/com.happenapps.Quiver/\
@@ -33,6 +34,8 @@ def parseArgs():
                         DEFAULT_LIBRARY + ').')
     parser.add_argument('-n', '--notebook', dest='notebook',
                         help='Specify the notebook to export.')
+    parser.add_argument('-N', '--notebook_path', dest='notebook_path',
+                        help='Specify the path to a specific notebook (instead of --library).')
     parser.add_argument('-o', '--output', dest='output_dir',
                         help='Specify the output directory.')
     return parser.parse_args()
@@ -66,11 +69,20 @@ def list_notebooks(args):
     n = []
     _, d = ls(args.library)
     for notebook in d:
+        n.append
         file_path = join(args.library, notebook)
-        with open(join(file_path, 'meta.json')) as data_file:
-            data = json.load(data_file)
-            n.append({'name': data['name'], 'path': file_path})
+        nb = get_notebook_from_path(args, file_path)
+        n.append(nb)
     return n
+
+
+def get_notebook_from_path(args, notebook_path):
+    nb = None
+    with open(join(notebook_path, 'meta.json')) as data_file:
+        data = json.load(data_file)
+        debug(args, 'meta.json: ' + str(data))
+        nb = {'name': data['name'], 'path': notebook_path}
+    return nb
 
 
 def get_notebook(args):
@@ -83,11 +95,42 @@ def get_notebook(args):
     return nb
 
 
+def copydir(args, src, dst):
+    names, _ = ls(src)
+    debug(args, src)
+    debug(args, names)
+    debug(args, dst)
+
+    try:
+        makedirs(dst)
+    except:
+        pass
+
+    errors = []
+    for name in names:
+        srcname = join(src, name)
+        dstname = join(dst, name)
+
+        try:
+            copy(srcname, dstname)
+        except Exception as err:
+            errors.extend(err.args[0])
+    if errors:
+        raise Exception(errors)
+
+
 def export(args, notebook, notes):
     c = []
+
     for note in notes:
         file_path = join(args.library, notebook['path'], note['path'])
         with open(join(file_path, 'content.json')) as data_file:
+            try:
+                copydir(args, join(file_path, 'resources'),
+                        join(args.output_dir, 'quiver-image-url'))
+            except Exception as e:
+                debug(args, e)
+                pass
             data = json.load(data_file)
             c.append(data)
             for cell in data['cells']:
@@ -101,6 +144,15 @@ def export(args, notebook, notes):
                 target.write(cell['data'].encode('utf-8'))
 
 
+def get_notebook_from_args(args):
+    if args.notebook is None:
+        if args.notebook_path is None:
+            return None
+        else:
+            return get_notebook_from_path(args, args.notebook_path)
+    else:
+        return get_notebook(args)
+
 if __name__ == "__main__":
     args = parseArgs()
     if args.library is None:
@@ -108,7 +160,10 @@ if __name__ == "__main__":
     if args.output_dir is None:
         args.output_dir = DEFAULT_OUTPUT
     debug(args, 'Args: ' + str(args))
-    if args.notebook is None:
+
+    notebook = get_notebook_from_args(args)
+
+    if notebook is None:
         if args.list_items:
             n = list_notebooks(args)
             n.sort()
@@ -117,7 +172,6 @@ if __name__ == "__main__":
                 print '  ' + notebook['name']
             exit(0)
     else:
-        notebook = get_notebook(args)
         notes = list_notes(args, notebook)
         notes.sort()
         if args.list_items:
@@ -126,6 +180,5 @@ if __name__ == "__main__":
             for note in notes:
                 print '  ' + str(note['name'])
             exit(0)
-
         export(args, notebook, notes)
     exit(0)
